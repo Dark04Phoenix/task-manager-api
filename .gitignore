@@ -1,5 +1,15 @@
-venv/
+# Python
 __pycache__/
 *.pyc
-tasks.db
+*.pyo
+*.pyd
+
+# Virtual env
+venv/
 .env
+
+# Database
+*.db
+
+# Alembic cache
+alembic/__pycache__/
