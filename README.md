@@ -55,5 +55,9 @@ The frontend communicates with the backend through a small API layer and manages
 
 1. Create virtual environment
 2. Install dependencies
+3. uvicorn app.main:app --reload
+4. Open API documentation:
+http://127.0.0.1:8000/docs
+
 ```bash
 pip install -r requirements.txt
