@@ -10,6 +10,24 @@ from app.auth import get_current_user
 router = APIRouter()
 
 
+# 🔥 Helper function (avoids duplication)
+def get_user_task(db: Session, task_id: int, user_id: int):
+    task = (
+        db.query(models.Task)
+        .filter(
+            models.Task.id == task_id,
+            models.Task.owner_id == user_id,
+        )
+        .first()
+    )
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found",
+        )
+    return task
+
+
 # 🔐 CREATE TASK
 @router.post(
     "/",
@@ -24,6 +42,7 @@ def create_task(
     db_task = models.Task(
         title=task.title,
         description=task.description,
+        is_done=task.is_done,
         priority=task.priority,
         owner_id=current_user.id,
     )
@@ -55,22 +74,7 @@ def get_task(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    task = (
-        db.query(models.Task)
-        .filter(
-            models.Task.id == task_id,
-            models.Task.owner_id == current_user.id,
-        )
-        .first()
-    )
-
-    if not task:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found",
-        )
-
-    return task
+    return get_user_task(db, task_id, current_user.id)
 
 
 # 🔐 UPDATE TASK
@@ -81,22 +85,8 @@ def update_task(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    task = (
-        db.query(models.Task)
-        .filter(
-            models.Task.id == task_id,
-            models.Task.owner_id == current_user.id,
-        )
-        .first()
-    )
+    task = get_user_task(db, task_id, current_user.id)
 
-    if not task:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found",
-        )
-
-    # Only update provided fields
     update_data = task_update.dict(exclude_unset=True)
 
     for field, value in update_data.items():
@@ -115,20 +105,9 @@ def delete_task(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    task = (
-        db.query(models.Task)
-        .filter(
-            models.Task.id == task_id,
-            models.Task.owner_id == current_user.id,
-        )
-        .first()
-    )
-
-    if not task:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found",
-        )
+    task = get_user_task(db, task_id, current_user.id)
 
     db.delete(task)
     db.commit()
+
+    return

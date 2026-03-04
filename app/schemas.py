@@ -8,7 +8,7 @@ from typing import Optional
 
 class TaskBase(BaseModel):
     title: str
-    description: str
+    description: Optional[str] = None
     is_done: bool = False
     priority: int = 1
 
